@@ -1,10 +1,16 @@
 package api
 
 import (
+	"anonymous-poll/database"
 	"anonymous-poll/models"
+	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -15,6 +21,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		var user models.User
 		json.NewDecoder(r.Body).Decode(&user)
 		if validateTheUser(&user, users) {
+			expirationTime := time.Now().Add(1 * time.Hour)
+			user.ExpiryTimeDate = expirationTime
 			userObtained, err := GetOneUserByEmail(user.Email)
 			checkError(err)
 			user.AccessToken = generateToken()
@@ -33,6 +41,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				"refresh_token":             user.RefreshToken,
 				"password":                  user.Password,
 				"access_refresh_token_pair": userObtained.AccessRefreshTokenPairList,
+				"expiry_time_date":          expirationTime,
 			})
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"message": "Invalid username or password"})
@@ -41,7 +50,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateTheUser(user *models.User, users []models.User) bool {
-	// fmt.Println("loop", users)
 	for _, currentUser := range users {
 		if currentUser.Email == user.Email && currentUser.Password == user.Password {
 			user.UserName = currentUser.UserName
@@ -50,3 +58,30 @@ func validateTheUser(user *models.User, users []models.User) bool {
 	}
 	return false
 }
+
+func updateUser(newUserValue models.User) {
+	existingUser, err := GetOneUserByEmail(newUserValue.Email)
+	fmt.Println(existingUser)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	existingUser = newUserValue
+	err = updateUserInDatabase(existingUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func updateUserInDatabase(user models.User) error {
+	_, err := database.Collection().UpdateOne(context.Background(), bson.M{"email": user.Email}, bson.M{"$set": user})
+	return err
+}
+
+// func isExpired(user models.User) bool {
+// 	if user.ExpiryTimeDate.Before(time.Now()) {
+// 		return true
+// 	} else {
+// 		return false
+// 	}
+// }

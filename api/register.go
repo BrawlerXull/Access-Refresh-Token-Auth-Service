@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +23,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		if checkIfUserExists(user, users) {
 			user.AccessToken = generateToken()
 			user.RefreshToken = generateToken()
+			expirationTime := time.Now().Add(1 * time.Hour)
+			user.ExpiryTimeDate = expirationTime
 			saveUser(user)
 			value := []models.AccessRefreshTokenPair{}
 			json.NewEncoder(w).Encode(map[string]interface{}{
@@ -31,6 +34,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 				"refresh_token":             user.RefreshToken,
 				"password":                  user.Password,
 				"access_refresh_token_pair": value,
+				"expiry_time_date":          expirationTime,
 			})
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"message": "user already exists"})
@@ -39,13 +43,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveUser(user models.User) {
-	database.Init()
 	inserted, err := database.Collection().InsertOne(context.Background(), user)
 	checkError(err)
 	fmt.Println("Inserted 1 user in db with id: ", inserted.InsertedID)
 }
 
 func checkIfUserExists(user models.User, users []models.User) bool {
+	fmt.Println("loop", users)
 	for _, currentUser := range users {
 		if currentUser.Email == user.Email || currentUser.UserName == user.UserName {
 			return false
