@@ -13,18 +13,20 @@ import (
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
-	w.Header().Set("Allow-Control-Allow-Methods", "POST")
-	users := GetAllUsers()
-	var user models.User
-	json.NewDecoder(r.Body).Decode(&user)
-	if checkIfUserExists(user, users) {
-		user.AccessToken = generateToken()
-		user.RefreshToken = generateToken()
-		saveUser(user)
-		json.NewEncoder(w).Encode(map[string]string{"username": user.UserName, "email": user.Email, "access_token": user.AccessToken, "refresh_token": user.RefreshToken, "password": user.Password})
-	} else {
-		json.NewEncoder(w).Encode(map[string]string{"message": "user already exists"})
+	if r.Method == http.MethodPost {
+		w.Header().Set("Content-Type", "application/x-www-form-urlencode")
+		w.Header().Set("Allow-Control-Allow-Methods", "POST")
+		users := GetAllUsers()
+		var user models.User
+		json.NewDecoder(r.Body).Decode(&user)
+		if checkIfUserExists(user, users) {
+			user.AccessToken = generateToken()
+			user.RefreshToken = generateToken()
+			saveUser(user)
+			json.NewEncoder(w).Encode(map[string]string{"username": user.UserName, "email": user.Email, "access_token": user.AccessToken, "refresh_token": user.RefreshToken, "password": user.Password})
+		} else {
+			json.NewEncoder(w).Encode(map[string]string{"message": "user already exists"})
+		}
 	}
 
 }
