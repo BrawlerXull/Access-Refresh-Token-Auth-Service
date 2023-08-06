@@ -23,12 +23,19 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			user.AccessToken = generateToken()
 			user.RefreshToken = generateToken()
 			saveUser(user)
-			json.NewEncoder(w).Encode(map[string]string{"username": user.UserName, "email": user.Email, "access_token": user.AccessToken, "refresh_token": user.RefreshToken, "password": user.Password})
+			value := []models.AccessRefreshTokenPair{}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"username":                  user.UserName,
+				"email":                     user.Email,
+				"access_token":              user.AccessToken,
+				"refresh_token":             user.RefreshToken,
+				"password":                  user.Password,
+				"access_refresh_token_pair": value,
+			})
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"message": "user already exists"})
 		}
 	}
-
 }
 
 func saveUser(user models.User) {
@@ -39,7 +46,6 @@ func saveUser(user models.User) {
 }
 
 func checkIfUserExists(user models.User, users []models.User) bool {
-	fmt.Println("loop", users)
 	for _, currentUser := range users {
 		if currentUser.Email == user.Email || currentUser.UserName == user.UserName {
 			return false
