@@ -17,7 +17,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		w.Header().Set("Content-Type", "application/x-www-form-urlencode")
 		w.Header().Set("Allow-Control-Allow-Methods", "POST")
-		users := GetAllUsers()
+		users, err := GetAllUsers()
+		checkError(err)
 		var user models.User
 		json.NewDecoder(r.Body).Decode(&user)
 		if checkIfUserExists(user, users) {
@@ -37,6 +38,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 				"expiry_time_date":          expirationTime,
 			})
 		} else {
+			w.WriteHeader(http.StatusAlreadyReported)
 			json.NewEncoder(w).Encode(map[string]string{"message": "user already exists"})
 		}
 	}

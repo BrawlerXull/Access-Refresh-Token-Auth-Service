@@ -17,7 +17,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		w.Header().Set("Content-Type", "application/x-www-form-urlencode")
 		w.Header().Set("Allow-Control-Allow-Methods", "POST")
-		users := GetAllUsers()
+		users, err := GetAllUsers()
+		checkError(err)
 		var user models.User
 		json.NewDecoder(r.Body).Decode(&user)
 		if validateTheUser(&user, users) {
@@ -45,6 +46,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				"expiry_time_date":          userObtained.ExpiryTimeDate,
 			})
 		} else {
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{"message": "Invalid username or password"})
 		}
 	}

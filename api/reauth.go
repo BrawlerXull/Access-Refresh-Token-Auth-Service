@@ -44,6 +44,7 @@ func ReAuth(w http.ResponseWriter, r *http.Request) {
 
 				json.NewEncoder(w).Encode(dbUser)
 			} else {
+				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(map[string]string{"message": "Invalid User Access"})
 			}
 		}

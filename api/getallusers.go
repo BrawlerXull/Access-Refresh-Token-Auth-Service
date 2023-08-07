@@ -5,7 +5,6 @@ import (
 	"anonymous-poll/models"
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,24 +12,31 @@ import (
 
 func GetAllMyUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	allUsers := GetAllUsers()
+	allUsers, err := GetAllUsers()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Unable to fetch data from the database"})
+		return
+	}
 	json.NewEncoder(w).Encode(allUsers)
 }
 
-func GetAllUsers() []models.User {
+func GetAllUsers() ([]models.User, error) {
 	cur, err := database.Collection().Find(context.Background(), bson.D{{}})
-	checkError(err)
-	var users []models.User
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.Background())
 
+	var users []models.User
 	for cur.Next(context.Background()) {
 		var user models.User
 		err := cur.Decode(&user)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		users = append(users, user)
 	}
 
-	defer cur.Close(context.Background())
-	return users
+	return users, nil
 }
