@@ -25,23 +25,24 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			user.ExpiryTimeDate = expirationTime
 			userObtained, err := GetOneUserByEmail(user.Email)
 			checkError(err)
-			user.AccessToken = generateToken()
-			user.RefreshToken = generateToken()
+			userObtained.AccessToken = generateToken()
+			userObtained.RefreshToken = generateToken()
 			value := models.AccessRefreshTokenPair{
-				AccessToken:  user.AccessToken,
-				RefreshToken: user.RefreshToken,
+				AccessToken:  userObtained.AccessToken,
+				RefreshToken: userObtained.RefreshToken,
 			}
 			userObtained.AccessRefreshTokenPairList = append(userObtained.AccessRefreshTokenPairList, value)
+			userObtained.ExpiryTimeDate = expirationTime
 			updateUser(userObtained)
 			fmt.Println(userObtained.AccessRefreshTokenPairList)
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"username":                  user.UserName,
-				"email":                     user.Email,
-				"access_token":              user.AccessToken,
-				"refresh_token":             user.RefreshToken,
-				"password":                  user.Password,
+				"username":                  userObtained.UserName,
+				"email":                     userObtained.Email,
+				"access_token":              userObtained.AccessToken,
+				"refresh_token":             userObtained.RefreshToken,
+				"password":                  userObtained.Password,
 				"access_refresh_token_pair": userObtained.AccessRefreshTokenPairList,
-				"expiry_time_date":          expirationTime,
+				"expiry_time_date":          userObtained.ExpiryTimeDate,
 			})
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"message": "Invalid username or password"})
