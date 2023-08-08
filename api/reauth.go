@@ -4,6 +4,7 @@ import (
 	"anonymous-poll/models"
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 func ReAuth(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +24,8 @@ func ReAuth(w http.ResponseWriter, r *http.Request) {
 		if dbUser.AccessToken == user.AccessToken {
 			dbUser.AccessToken = generateToken()
 			dbUser.RefreshToken = generateToken()
+			expirationTime := time.Now().Add(1 * time.Hour)
+			dbUser.ExpiryTimeDate = expirationTime
 			value := models.AccessRefreshTokenPair{
 				AccessToken:  dbUser.AccessToken,
 				RefreshToken: dbUser.RefreshToken,
@@ -35,6 +38,8 @@ func ReAuth(w http.ResponseWriter, r *http.Request) {
 			if dbUser.RefreshToken == user.RefreshToken {
 				dbUser.AccessToken = generateToken()
 				dbUser.RefreshToken = generateToken()
+				expirationTime := time.Now().Add(1 * time.Hour)
+				dbUser.ExpiryTimeDate = expirationTime
 				value := models.AccessRefreshTokenPair{
 					AccessToken:  dbUser.AccessToken,
 					RefreshToken: dbUser.RefreshToken,

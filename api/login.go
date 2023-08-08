@@ -22,18 +22,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		var user models.User
 		json.NewDecoder(r.Body).Decode(&user)
 		if validateTheUser(&user, users) {
-			expirationTime := time.Now().Add(1 * time.Hour)
-			user.ExpiryTimeDate = expirationTime
 			userObtained, err := GetOneUserByEmail(user.Email)
 			checkError(err)
 			userObtained.AccessToken = generateToken()
 			userObtained.RefreshToken = generateToken()
+			expirationTime := time.Now().Add(1 * time.Hour)
+			userObtained.ExpiryTimeDate = expirationTime
 			value := models.AccessRefreshTokenPair{
 				AccessToken:  userObtained.AccessToken,
 				RefreshToken: userObtained.RefreshToken,
 			}
 			userObtained.AccessRefreshTokenPairList = append(userObtained.AccessRefreshTokenPairList, value)
-			userObtained.ExpiryTimeDate = expirationTime
 			updateUser(userObtained)
 			fmt.Println(userObtained.AccessRefreshTokenPairList)
 			json.NewEncoder(w).Encode(map[string]interface{}{
