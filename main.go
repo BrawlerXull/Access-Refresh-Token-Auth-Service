@@ -1,8 +1,8 @@
 package main
 
 import (
-	"anonymous-poll/database"
-	"anonymous-poll/router"
+	"access-refresh-token/database"
+	"access-refresh-token/router"
 	"fmt"
 	"net/http"
 )

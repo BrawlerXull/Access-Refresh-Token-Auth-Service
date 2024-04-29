@@ -1,4 +1,4 @@
-module anonymous-poll
+module access-refresh-token
 
 go 1.20
 

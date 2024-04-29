@@ -1,7 +1,7 @@
 package api
 
 import (
-	"anonymous-poll/models"
+	"access-refresh-token/models"
 	"encoding/json"
 	"net/http"
 	"time"

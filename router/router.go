@@ -1,8 +1,7 @@
 package router
 
 import (
-	"anonymous-poll/api"
-
+	"access-refresh-token/api"
 	"github.com/gorilla/mux"
 )
 

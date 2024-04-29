@@ -1,8 +1,8 @@
 package api
 
 import (
-	"anonymous-poll/database"
-	"anonymous-poll/models"
+	"access-refresh-token/database"
+	"access-refresh-token/models"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
